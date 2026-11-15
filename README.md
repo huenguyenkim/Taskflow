@@ -274,9 +274,8 @@ http://localhost:8080/swagger-ui/index.html
 **Nguyen Thi Kim Hue**
 Backend developer (Java / Spring Boot)
 
-- GitHub: [github.com/your-username](https://github.com/your-username)
-- LinkedIn: [linkedin.com/in/your-profile](https://linkedin.com/in/your-profile)
-- Email: your.email@example.com
+- GitHub: https://github.com/huenguyenkim/Taskflow.git
+- Email: nguyenhue2612200398@gmail.com
 
 ---
 
