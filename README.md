@@ -1,8 +1,8 @@
 # 🚀 TaskFlow
 
-> Task Management System built with Spring Boot and secured with JWT Authentication.
+> A Task Management System built with Spring Boot and secured using JWT Authentication and Refresh Token Authentication.
 >
-> Supports Role-Based Authorization, Access Token, Refresh Token, Pagination, Search, Filtering, Sorting, Swagger Documentation, and Docker Deployment.
+> Supports Role-Based Authorization, Pagination, Search, Filtering, Sorting, Swagger Documentation, and Docker Deployment.
 
 ---
 
@@ -15,6 +15,7 @@
 - JWT Authentication
 - Access Token
 - Refresh Token
+- Refresh Token Rotation
 - Secure API Access
 
 ### 👤 User Management
@@ -40,14 +41,14 @@
 - Role-Based Access Control
   - USER
   - ADMIN
-- Spring Security Integration
+- Spring Security 6
 
 ### 📖 Documentation & DevOps
 
-- Swagger / OpenAPI Documentation
-- Docker Support
-- Docker Compose Support
-- Maven Build Automation
+- Swagger / OpenAPI
+- Docker
+- Docker Compose
+- Maven Wrapper
 
 ---
 
@@ -55,9 +56,9 @@
 
 ✅ JWT Authentication
 
-✅ Access Token
+✅ Access Token Authentication
 
-✅ Refresh Token
+✅ Refresh Token Authentication
 
 ✅ Refresh Token Rotation
 
@@ -82,7 +83,7 @@
 ## 🛠 Tech Stack
 
 | Layer | Technologies |
-|---------|---------|
+|---------|-------------|
 | Backend | Java 17, Spring Boot 3.5.6 |
 | Security | Spring Security 6 |
 | Database | MySQL 8 |
@@ -100,19 +101,19 @@
 ```mermaid
 flowchart LR
 
-    Client["Client<br/>(Postman / Swagger UI / React Frontend)"]
+    Client["Client<br/>(Swagger UI / Postman / Frontend)"]
 
     Client --> API["Spring Boot REST API"]
 
-    API --> Security["Spring Security<br/>+ JWT Filter"]
+    API --> Security["Spring Security<br/>JWT Filter"]
 
     Security --> Controller["Controller"]
 
-    Controller --> Service["Service"]
+    Controller --> Service["Service Layer"]
 
-    Service --> Repository["Repository (JPA)"]
+    Service --> Repository["Repository Layer"]
 
-    Repository --> DB[("MySQL")]
+    Repository --> DB[("MySQL Database")]
 ```
 
 ---
@@ -122,8 +123,8 @@ flowchart LR
 ```text
 auth
 ├── Login
-├── Access Token (24 hours)
-├── Refresh Token (7 days)
+├── Access Token (24 Hours)
+├── Refresh Token (7 Days)
 └── Refresh Endpoint
 ```
 
@@ -135,17 +136,16 @@ auth
 sequenceDiagram
 
     actor User
-
     participant API as Spring Boot API
     participant DB as MySQL
 
     User->>API: POST /api/auth/login
 
-    API->>DB: Find user by email
+    API->>DB: Find User
 
-    DB-->>API: User record
+    DB-->>API: User Record
 
-    API->>API: Verify password
+    API->>API: Verify Password
 
     API->>API: Generate Access Token
 
@@ -153,9 +153,9 @@ sequenceDiagram
 
     API-->>User: Return Tokens
 
-    User->>API: Authorization Bearer Token
+    User->>API: Authorization Bearer Access Token
 
-    API->>API: Validate JWT
+    API->>API: Validate Token
 
     API-->>User: Protected Resource
 ```
@@ -170,6 +170,7 @@ sequenceDiagram
     actor User
 
     participant API as Spring Boot API
+
     participant DB as MySQL
 
     User->>API: POST /api/auth/refresh-token
@@ -193,7 +194,7 @@ sequenceDiagram
 erDiagram
 
     USER ||--o{ TASK : owns
-    USER ||--|| REFRESH_TOKEN : has
+    USER ||--|| REFRESH_TOKEN : contains
 
     USER {
         Long id PK
@@ -231,9 +232,9 @@ erDiagram
 taskflow/
 ├── screenshots/
 ├── src/
-│   ├── main/
-│   │   ├── java/com/taskflow/
-│   │   │
+│
+├── main/
+│   ├── java/com/taskflow/
 │   │   ├── config/
 │   │   ├── controller/
 │   │   ├── dto/
@@ -246,10 +247,8 @@ taskflow/
 │   │   ├── security/
 │   │   └── service/
 │   │
-│   │   └── resources/
-│   │       └── application.properties
-│   │
-│   └── test/
+│   └── resources/
+│       └── application.properties
 │
 ├── Dockerfile
 ├── docker-compose.yml
@@ -266,6 +265,7 @@ taskflow/
 - Java 17
 - Maven 3.9+
 - MySQL 8
+- Docker (optional)
 
 ---
 
@@ -306,23 +306,27 @@ jwt.expiration=86400000
 
 ### Run Application
 
-```bash
-./mvnw spring-boot:run
-```
-
 Windows:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
+Linux / Mac:
+
+```bash
+./mvnw spring-boot:run
+```
+
 ---
 
-### Build JAR
+### Build Jar
 
 ```bash
 ./mvnw clean package
 ```
+
+Run:
 
 ```bash
 java -jar target/taskflow-0.0.1-SNAPSHOT.jar
@@ -332,13 +336,13 @@ java -jar target/taskflow-0.0.1-SNAPSHOT.jar
 
 ## 🐳 Docker
 
-### Build Image
+### Build Docker Image
 
 ```bash
 docker build -t taskflow .
 ```
 
-### Run Container
+### Run Docker Container
 
 ```bash
 docker run -p 8080:8080 taskflow
@@ -348,13 +352,13 @@ docker run -p 8080:8080 taskflow
 
 ## 🐳 Docker Compose
 
-### Start
+### Start Services
 
 ```bash
 docker compose up -d
 ```
 
-### Stop
+### Stop Services
 
 ```bash
 docker compose down
@@ -362,9 +366,9 @@ docker compose down
 
 ---
 
-## 📖 Swagger API Documentation
+## 📖 Swagger Documentation
 
-After starting application:
+After starting the application:
 
 ```text
 http://localhost:8080/swagger-ui/index.html
@@ -403,7 +407,7 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
-## 🔍 Task Query Examples
+## 🔍 Query Examples
 
 ### Pagination
 
@@ -432,7 +436,7 @@ GET /api/tasks?sortBy=createdAt&direction=desc
 ### Combined Query
 
 ```http
-GET /api/tasks?page=0&size=5&status=DONE&keyword=swagger&sortBy=createdAt&direction=desc
+GET /api/tasks?page=0&size=5&keyword=swagger&status=DONE&sortBy=createdAt&direction=desc
 ```
 
 ---
@@ -452,8 +456,8 @@ GET /api/tasks?page=0&size=5&status=DONE&keyword=swagger&sortBy=createdAt&direct
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-  "refreshToken": "8f9fc15d-d615-411d-862f-937e876623cf",
+  "accessToken": "...",
+  "refreshToken": "...",
   "tokenType": "Bearer",
   "id": 1,
   "username": "admin",
@@ -478,8 +482,8 @@ GET /api/tasks?page=0&size=5&status=DONE&keyword=swagger&sortBy=createdAt&direct
 
 ```json
 {
-  "accessToken": "new-access-token",
-  "refreshToken": "new-refresh-token",
+  "accessToken": "...",
+  "refreshToken": "...",
   "tokenType": "Bearer"
 }
 ```
@@ -488,52 +492,43 @@ GET /api/tasks?page=0&size=5&status=DONE&keyword=swagger&sortBy=createdAt&direct
 
 ## 🖼 Screenshots
 
-### Swagger UI
+### Login with Access Token & Refresh Token
 
-```text
-screenshots/swagger-ui.png
-```
-
-### JWT Authentication
-
-```text
-screenshots/login-success.png
-```
-
-### Task Management API
-
-```text
-screenshots/task-list.png
-```
-
-### Pagination Search Filter Sort
-
-```text
-screenshots/pagination-search-filter-sort.png
-```
+screenshots/login-with-refresh-token.png
 
 ### Refresh Token Authentication
 
-```text
-screenshots/refresh-token.png
-```
+screenshots/refresh-token-success.png
+
+### Pagination
+
+screenshots/pagination.png
+
+### Search, Filter & Sort
+
+screenshots/task-query.png
+
+### Swagger UI
+
+screenshots/swagger-ui.png
 
 ---
 
 ## ✅ Completed Features
 
 - JWT Authentication
-- Access Token
-- Refresh Token
+- Refresh Token Authentication
 - Refresh Token Rotation
+- User Registration
+- User Login
 - Role-Based Authorization
 - User Management
-- Task CRUD
+- Task CRUD Operations
 - Pagination
-- Search
-- Filter
+- Search by Title
+- Filter by Status
 - Sorting
-- Swagger Documentation
+- Swagger/OpenAPI Documentation
 - Docker Support
 - Docker Compose
 - MySQL Integration
@@ -544,12 +539,12 @@ screenshots/refresh-token.png
 ## 🔮 Future Improvements
 
 - [ ] React Frontend (Vite + Tailwind CSS)
-- [ ] Email Notifications
+- [ ] Email Notification Service
 - [ ] File Attachments
 - [ ] Redis Caching
 - [ ] CI/CD Pipeline (GitHub Actions)
 - [ ] Kubernetes Deployment
-- [ ] Task Dashboard & Analytics
+- [ ] Dashboard & Analytics
 
 ---
 
@@ -557,7 +552,7 @@ screenshots/refresh-token.png
 
 **Nguyen Thi Kim Hue**
 
-Backend Developer (Java / Spring Boot)
+Java Backend Developer
 
 - GitHub: https://github.com/huenguyenkim
 - Repository: https://github.com/huenguyenkim/Taskflow
@@ -567,4 +562,4 @@ Backend Developer (Java / Spring Boot)
 
 ## 📄 License
 
-This project is licensed under the MIT License.v
+This project is licensed under the MIT License.
