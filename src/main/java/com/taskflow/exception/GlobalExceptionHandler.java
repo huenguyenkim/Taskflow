@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -15,20 +16,34 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Resource Not Found Exception
-     */
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(
+    public ResponseEntity<Map<String, Object>>
+    handleResourceNotFoundException(
             ResourceNotFoundException ex
     ) {
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response =
+                new HashMap<>();
 
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.NOT_FOUND.value());
-        response.put("error", "Not Found");
-        response.put("message", ex.getMessage());
+        response.put(
+                "timestamp",
+                LocalDateTime.now()
+        );
+
+        response.put(
+                "status",
+                HttpStatus.NOT_FOUND.value()
+        );
+
+        response.put(
+                "error",
+                "Not Found"
+        );
+
+        response.put(
+                "message",
+                ex.getMessage()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -36,20 +51,34 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Runtime Exception
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(
-            RuntimeException ex
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, Object>>
+    handleBadRequestException(
+            BadRequestException ex
     ) {
 
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response =
+                new HashMap<>();
 
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Bad Request");
-        response.put("message", ex.getMessage());
+        response.put(
+                "timestamp",
+                LocalDateTime.now()
+        );
+
+        response.put(
+                "status",
+                HttpStatus.BAD_REQUEST.value()
+        );
+
+        response.put(
+                "error",
+                "Bad Request"
+        );
+
+        response.put(
+                "message",
+                ex.getMessage()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -57,25 +86,28 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * Validation Exception (@Valid)
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(
+    @ExceptionHandler(
+            MethodArgumentNotValidException.class
+    )
+    public ResponseEntity<Map<String, Object>>
+    handleValidationException(
             MethodArgumentNotValidException ex
     ) {
 
-        Map<String, String> fieldErrors = new HashMap<>();
+        Map<String, String> fieldErrors =
+                new HashMap<>();
 
         ex.getBindingResult()
                 .getAllErrors()
                 .forEach(error -> {
 
                     String fieldName =
-                            ((FieldError) error).getField();
+                            ((FieldError) error)
+                                    .getField();
 
                     String errorMessage =
-                            error.getDefaultMessage();
+                            error
+                                    .getDefaultMessage();
 
                     fieldErrors.put(
                             fieldName,
@@ -86,17 +118,25 @@ public class GlobalExceptionHandler {
         Map<String, Object> response =
                 new HashMap<>();
 
-        response.put("timestamp",
-                LocalDateTime.now());
+        response.put(
+                "timestamp",
+                LocalDateTime.now()
+        );
 
-        response.put("status",
-                HttpStatus.BAD_REQUEST.value());
+        response.put(
+                "status",
+                HttpStatus.BAD_REQUEST.value()
+        );
 
-        response.put("error",
-                "Validation Failed");
+        response.put(
+                "error",
+                "Validation Failed"
+        );
 
-        response.put("errors",
-                fieldErrors);
+        response.put(
+                "errors",
+                fieldErrors
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -104,9 +144,6 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * ConstraintViolation Exception
-     */
     @ExceptionHandler(
             ConstraintViolationException.class
     )
@@ -118,17 +155,25 @@ public class GlobalExceptionHandler {
         Map<String, Object> response =
                 new HashMap<>();
 
-        response.put("timestamp",
-                LocalDateTime.now());
+        response.put(
+                "timestamp",
+                LocalDateTime.now()
+        );
 
-        response.put("status",
-                HttpStatus.BAD_REQUEST.value());
+        response.put(
+                "status",
+                HttpStatus.BAD_REQUEST.value()
+        );
 
-        response.put("error",
-                "Constraint Violation");
+        response.put(
+                "error",
+                "Constraint Violation"
+        );
 
-        response.put("message",
-                ex.getMessage());
+        response.put(
+                "message",
+                ex.getMessage()
+        );
 
         return new ResponseEntity<>(
                 response,
@@ -136,28 +181,71 @@ public class GlobalExceptionHandler {
         );
     }
 
-    /**
-     * General Exception
-     */
+    @ExceptionHandler(
+            HttpRequestMethodNotSupportedException.class
+    )
+    public ResponseEntity<Map<String, Object>>
+    handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex
+    ) {
+
+        Map<String, Object> response =
+                new HashMap<>();
+
+        response.put(
+                "timestamp",
+                LocalDateTime.now()
+        );
+
+        response.put(
+                "status",
+                HttpStatus.METHOD_NOT_ALLOWED.value()
+        );
+
+        response.put(
+                "error",
+                "Method Not Allowed"
+        );
+
+        response.put(
+                "message",
+                ex.getMessage()
+        );
+
+        return new ResponseEntity<>(
+                response,
+                HttpStatus.METHOD_NOT_ALLOWED
+        );
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleException(
+    public ResponseEntity<Map<String, Object>>
+    handleException(
             Exception ex
     ) {
 
         Map<String, Object> response =
                 new HashMap<>();
 
-        response.put("timestamp",
-                LocalDateTime.now());
+        response.put(
+                "timestamp",
+                LocalDateTime.now()
+        );
 
-        response.put("status",
-                HttpStatus.INTERNAL_SERVER_ERROR.value());
+        response.put(
+                "status",
+                HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
 
-        response.put("error",
-                "Internal Server Error");
+        response.put(
+                "error",
+                "Internal Server Error"
+        );
 
-        response.put("message",
-                ex.getMessage());
+        response.put(
+                "message",
+                ex.getMessage()
+        );
 
         return new ResponseEntity<>(
                 response,
