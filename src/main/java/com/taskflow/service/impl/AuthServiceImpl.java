@@ -1,9 +1,12 @@
 package com.taskflow.service.impl;
 
 import com.taskflow.dto.request.LoginRequest;
+import com.taskflow.dto.request.RefreshTokenRequest;
 import com.taskflow.dto.request.RegisterRequest;
 import com.taskflow.dto.response.LoginResponse;
+import com.taskflow.dto.response.RefreshTokenResponse;
 import com.taskflow.dto.response.UserResponse;
+import com.taskflow.entity.RefreshToken;
 import com.taskflow.entity.Role;
 import com.taskflow.entity.User;
 import com.taskflow.exception.BadRequestException;
@@ -11,6 +14,7 @@ import com.taskflow.mapper.UserMapper;
 import com.taskflow.repository.UserRepository;
 import com.taskflow.security.JwtService;
 import com.taskflow.service.AuthService;
+import com.taskflow.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,6 +34,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
 
     private final UserMapper userMapper;
+
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -70,7 +76,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(
-            LoginRequest request) {
+            LoginRequest request
+    ) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -80,25 +87,78 @@ public class AuthServiceImpl implements AuthService {
         );
 
         User user = userRepository
-                .findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new BadRequestException(
-                                "Invalid email or password"
-                        )
+                .findByEmail(
+                        request.getEmail()
+                )
+                .orElseThrow(
+                        () ->
+                                new BadRequestException(
+                                        "Invalid email or password"
+                                )
                 );
 
-        String token =
+        String accessToken =
                 jwtService.generateToken(
                         user.getEmail()
                 );
 
+        RefreshToken refreshToken =
+                refreshTokenService
+                        .createRefreshToken(
+                                user
+                        );
+
         return LoginResponse.builder()
-                .token(token)
-                .type("Bearer")
+                .accessToken(accessToken)
+                .refreshToken(
+                        refreshToken.getToken()
+                )
+                .tokenType("Bearer")
                 .id(user.getId())
-                .username(user.getUsername())
+                .username(
+                        user.getDisplayUsername()
+                )
                 .email(user.getEmail())
-                .role(user.getRole())
+                .role(
+                        user.getRole().name()
+                )
+                .build();
+    }
+
+    @Override
+    public RefreshTokenResponse refreshToken(
+            RefreshTokenRequest request
+    ) {
+
+        RefreshToken refreshToken =
+                refreshTokenService
+                        .verifyRefreshToken(
+                                request.getRefreshToken()
+                        );
+
+        User user =
+                refreshToken.getUser();
+
+        String newAccessToken =
+                jwtService.generateToken(
+                        user.getEmail()
+                );
+
+        RefreshToken newRefreshToken =
+                refreshTokenService
+                        .createRefreshToken(
+                                user
+                        );
+
+        return RefreshTokenResponse
+                .builder()
+                .accessToken(
+                        newAccessToken
+                )
+                .refreshToken(
+                        newRefreshToken.getToken()
+                )
+                .tokenType("Bearer")
                 .build();
     }
 }

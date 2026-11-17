@@ -1,6 +1,5 @@
 package com.taskflow.dto.response;
 
-import com.taskflow.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,9 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
 
-    private String token;
+    private String accessToken;
 
-    private String type;
+    private String refreshToken;
+
+    private String tokenType;
 
     private Long id;
 
@@ -22,5 +23,5 @@ public class LoginResponse {
 
     private String email;
 
-    private Role role;
+    private String role;
 }

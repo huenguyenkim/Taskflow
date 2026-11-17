@@ -4,17 +4,16 @@ import com.taskflow.dto.request.TaskRequest;
 import com.taskflow.dto.response.TaskResponse;
 import com.taskflow.entity.Task;
 import com.taskflow.entity.TaskStatus;
-import com.taskflow.entity.User;
-import com.taskflow.exception.ForbiddenException;
 import com.taskflow.exception.ResourceNotFoundException;
-import com.taskflow.mapper.TaskMapper;
 import com.taskflow.repository.TaskRepository;
-import com.taskflow.repository.UserRepository;
 import com.taskflow.service.TaskService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,64 +23,118 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
 
-    private final UserRepository userRepository;
-
-    private final TaskMapper taskMapper;
-
     @Override
     public TaskResponse createTask(TaskRequest request) {
 
-        User user = getAuthenticatedUser();
+        Task task = new Task();
 
-        Task task = taskMapper.toEntity(
-                request,
-                user
-        );
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setStatus(request.getStatus());
 
-        Task savedTask =
-                taskRepository.save(task);
+        Task savedTask = taskRepository.save(task);
 
-        return taskMapper.toResponse(
-                savedTask
-        );
+        return mapToResponse(savedTask);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskResponse> getAllTasks() {
 
-        User user = getAuthenticatedUser();
-
-        return taskRepository.findByUser(user)
+        return taskRepository.findAll()
                 .stream()
-                .map(taskMapper::toResponse)
+                .map(this::mapToResponse)
                 .toList();
     }
 
     @Override
-    public TaskResponse getTaskById(Long id) {
+    @Transactional(readOnly = true)
+    public Page<TaskResponse> getTasks(
+            int page,
+            int size,
+            String sortBy,
+            String direction,
+            String status,
+            String keyword
+    ) {
 
-        User currentUser =
-                getAuthenticatedUser();
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
 
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Task",
-                                        "id",
-                                        id
-                                )
-                        );
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
 
-        if (!task.getUser().getId()
-                .equals(currentUser.getId())) {
+        Page<Task> tasks;
 
-            throw new ForbiddenException(
-                    "You do not have permission to access this task"
+        TaskStatus taskStatus = null;
+
+        if (status != null && !status.isBlank()) {
+            taskStatus = TaskStatus.valueOf(
+                    status.toUpperCase()
             );
         }
 
-        return taskMapper.toResponse(task);
+        // Search + Status
+        if (keyword != null
+                && !keyword.isBlank()
+                && taskStatus != null) {
+
+            tasks =
+                    taskRepository
+                            .findByTitleContainingIgnoreCaseAndStatus(
+                                    keyword,
+                                    taskStatus,
+                                    pageable
+                            );
+        }
+
+        // Search
+        else if (keyword != null
+                && !keyword.isBlank()) {
+
+            tasks =
+                    taskRepository
+                            .findByTitleContainingIgnoreCase(
+                                    keyword,
+                                    pageable
+                            );
+        }
+
+        // Status
+        else if (taskStatus != null) {
+
+            tasks =
+                    taskRepository
+                            .findByStatus(
+                                    taskStatus,
+                                    pageable
+                            );
+        }
+
+        // All
+        else {
+
+            tasks = taskRepository.findAll(
+                    pageable
+            );
+        }
+
+        return tasks.map(this::mapToResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TaskResponse getTaskById(Long id) {
+
+        Task task = taskRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                "Task not found with id: " + id
+                        )
+                );
+
+        return mapToResponse(task);
     }
 
     @Override
@@ -90,87 +143,59 @@ public class TaskServiceImpl implements TaskService {
             TaskRequest request
     ) {
 
-        User currentUser =
-                getAuthenticatedUser();
+        Task task = taskRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                "Task not found with id: " + id
+                        )
+                );
 
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Task",
-                                        "id",
-                                        id
-                                )
-                        );
-
-        if (!task.getUser().getId()
-                .equals(currentUser.getId())) {
-
-            throw new ForbiddenException(
-                    "You do not have permission to update this task"
-            );
-        }
-
-        taskMapper.updateEntity(
-                task,
-                request
-        );
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setStatus(request.getStatus());
 
         Task updatedTask =
                 taskRepository.save(task);
 
-        return taskMapper.toResponse(
-                updatedTask
-        );
+        return mapToResponse(updatedTask);
     }
 
     @Override
     public void deleteTask(Long id) {
 
-        User currentUser =
-                getAuthenticatedUser();
-
-        Task task =
-                taskRepository.findById(id)
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException(
-                                        "Task",
-                                        "id",
-                                        id
-                                )
-                        );
-
-        if (!task.getUser().getId()
-                .equals(currentUser.getId())) {
-
-            throw new ForbiddenException(
-                    "You do not have permission to delete this task"
-            );
-        }
+        Task task = taskRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException(
+                                "Task not found with id: " + id
+                        )
+                );
 
         taskRepository.delete(task);
     }
 
-    /**
-     * Lấy user đang đăng nhập từ JWT
-     */
-    private User getAuthenticatedUser() {
+    private TaskResponse mapToResponse(Task task) {
 
-        Authentication authentication =
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication();
+        TaskResponse response =
+                new TaskResponse();
 
-        String email =
-                authentication.getName();
+        response.setId(task.getId());
+        response.setTitle(task.getTitle());
+        response.setDescription(task.getDescription());
+        response.setStatus(task.getStatus());
+        response.setCreatedAt(task.getCreatedAt());
+        response.setUpdatedAt(task.getUpdatedAt());
 
-        return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User",
-                                "email",
-                                email
-                        )
-                );
+        if (task.getUser() != null) {
+
+            response.setUserId(
+                    task.getUser().getId()
+            );
+
+            response.setUsername(
+                    task.getUser().getDisplayUsername()
+            );
+        }
+
+        return response;
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
     /**
-     * Lấy danh sách task theo user
+     * Lấy tất cả task của user
      */
     List<Task> findByUser(User user);
 
@@ -34,6 +34,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     );
 
     /**
+     * Phân trang task theo trạng thái
+     */
+    Page<Task> findByStatus(
+            TaskStatus status,
+            Pageable pageable
+    );
+
+    /**
      * Lấy task theo user và trạng thái
      */
     List<Task> findByUserAndStatus(
@@ -42,18 +50,63 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     );
 
     /**
-     * Tìm kiếm theo tiêu đề
+     * Phân trang task theo user và trạng thái
+     */
+    Page<Task> findByUserAndStatus(
+            User user,
+            TaskStatus status,
+            Pageable pageable
+    );
+
+    /**
+     * Tìm kiếm theo title
      */
     List<Task> findByTitleContainingIgnoreCase(
             String keyword
     );
 
     /**
-     * Tìm kiếm task theo tiêu đề của user
+     * Tìm kiếm theo title có phân trang
+     */
+    Page<Task> findByTitleContainingIgnoreCase(
+            String keyword,
+            Pageable pageable
+    );
+
+    /**
+     * Tìm kiếm title theo user
      */
     List<Task> findByTitleContainingIgnoreCaseAndUser(
             String keyword,
             User user
+    );
+
+    /**
+     * Tìm kiếm title theo user có phân trang
+     */
+    Page<Task> findByTitleContainingIgnoreCaseAndUser(
+            String keyword,
+            User user,
+            Pageable pageable
+    );
+
+    /**
+     * Tìm kiếm theo title và status
+     */
+    Page<Task> findByTitleContainingIgnoreCaseAndStatus(
+            String keyword,
+            TaskStatus status,
+            Pageable pageable
+    );
+
+    /**
+     * Tìm kiếm theo title + status + user
+     */
+    Page<Task> findByTitleContainingIgnoreCaseAndStatusAndUser(
+            String keyword,
+            TaskStatus status,
+            User user,
+            Pageable pageable
     );
 
     /**
@@ -68,6 +121,14 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
      */
     long countByUser(
             User user
+    );
+
+    /**
+     * Đếm task của user theo trạng thái
+     */
+    long countByUserAndStatus(
+            User user,
+            TaskStatus status
     );
 
     /**

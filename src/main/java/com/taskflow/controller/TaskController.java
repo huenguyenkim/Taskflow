@@ -5,11 +5,10 @@ import com.taskflow.dto.response.TaskResponse;
 import com.taskflow.service.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -35,13 +34,39 @@ public class TaskController {
     }
 
     /**
-     * Lấy danh sách task của user hiện tại
+     * Pagination + Search + Sort + Filter
      */
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getAllTasks() {
+    public ResponseEntity<Page<TaskResponse>> getTasks(
 
-        List<TaskResponse> tasks =
-                taskService.getAllTasks();
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size,
+
+            @RequestParam(defaultValue = "createdAt")
+            String sortBy,
+
+            @RequestParam(defaultValue = "desc")
+            String direction,
+
+            @RequestParam(required = false)
+            String status,
+
+            @RequestParam(required = false)
+            String keyword
+    ) {
+
+        Page<TaskResponse> tasks =
+                taskService.getTasks(
+                        page,
+                        size,
+                        sortBy,
+                        direction,
+                        status,
+                        keyword
+                );
 
         return ResponseEntity.ok(tasks);
     }
