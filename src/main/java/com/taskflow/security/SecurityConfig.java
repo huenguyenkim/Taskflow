@@ -1,6 +1,5 @@
 package com.taskflow.security;
 
-import com.taskflow.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -8,7 +7,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,7 +17,6 @@ import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
-
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -30,6 +27,7 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter =
                 jwtAuthenticationFilter;
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
@@ -78,29 +76,23 @@ public class SecurityConfig {
                 new CorsConfiguration();
 
         configuration.setAllowedOriginPatterns(
-                List.of(
-                        "http://localhost:5173",
-                        "https://localhost:5173",
-                        "https://*.vercel.app"
-                )
+                List.of("*")
         );
 
         configuration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "OPTIONS"
-                )
+                List.of("*")
         );
 
         configuration.setAllowedHeaders(
                 List.of("*")
         );
 
+        configuration.setExposedHeaders(
+                List.of("*")
+        );
+
         configuration.setAllowCredentials(
-                true
+                false
         );
 
         UrlBasedCorsConfigurationSource source =
@@ -113,8 +105,4 @@ public class SecurityConfig {
 
         return source;
     }
-
-
-
-
 }
