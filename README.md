@@ -1,30 +1,30 @@
 # 🚀 TaskFlow
 
-> Task Management System built with **Spring Boot** and secured with **JWT Authentication**.
+> Task Management System built with Spring Boot and secured with JWT Authentication.
 >
-> Supports Role-Based Authorization, Pagination, Search, Filtering, Sorting, Swagger API Documentation, and Docker Deployment.
-
-[API Docs (Swagger)](#-swagger-api-documentation) • [Screenshots](#-screenshots) • [Features](#-features)
+> Supports Role-Based Authorization, Access Token, Refresh Token, Pagination, Search, Filtering, Sorting, Swagger Documentation, and Docker Deployment.
 
 ---
 
-# ✨ Features
+## ✨ Features
 
-## 🔐 Authentication
+### 🔐 Authentication
 
 - User Registration
 - User Login
 - JWT Authentication
+- Access Token
+- Refresh Token
 - Secure API Access
 
-## 👤 User Management
+### 👤 User Management
 
 - Get Current User Profile
 - Get User By ID
 - Get All Users (ADMIN)
 - Delete User (ADMIN)
 
-## ✅ Task Management
+### ✅ Task Management
 
 - Create Task
 - Get Task By ID
@@ -35,14 +35,14 @@
 - Filter by Status
 - Sorting
 
-## 🛡 Authorization
+### 🛡 Authorization
 
 - Role-Based Access Control
-  - `USER`
-  - `ADMIN`
+  - USER
+  - ADMIN
 - Spring Security Integration
 
-## 📖 Documentation & DevOps
+### 📖 Documentation & DevOps
 
 - Swagger / OpenAPI Documentation
 - Docker Support
@@ -51,9 +51,15 @@
 
 ---
 
-# 🚀 Advanced Features
+## 🚀 Advanced Features
 
 ✅ JWT Authentication
+
+✅ Access Token
+
+✅ Refresh Token
+
+✅ Refresh Token Rotation
 
 ✅ Role-Based Authorization
 
@@ -73,20 +79,23 @@
 
 ---
 
-# 🛠 Tech Stack
+## 🛠 Tech Stack
 
 | Layer | Technologies |
 |---------|---------|
-| Backend | Java 17, Spring Boot 3.5.6, Spring Security 6, Spring Data JPA, Hibernate, Maven |
+| Backend | Java 17, Spring Boot 3.5.6 |
+| Security | Spring Security 6 |
 | Database | MySQL 8 |
-| Authentication | JWT (JSON Web Token) |
+| ORM | Spring Data JPA, Hibernate |
+| Authentication | JWT + Refresh Token |
 | Documentation | Swagger / OpenAPI 3 |
 | DevOps | Docker, Docker Compose |
+| Build Tool | Maven |
 | Utilities | Lombok, Jakarta Validation API |
 
 ---
 
-# 🏛 System Architecture
+## 🏛 System Architecture
 
 ```mermaid
 flowchart LR
@@ -108,7 +117,19 @@ flowchart LR
 
 ---
 
-# 🔐 JWT Authentication Flow
+## 🔐 Authentication Architecture
+
+```text
+auth
+├── Login
+├── Access Token (24 hours)
+├── Refresh Token (7 days)
+└── Refresh Endpoint
+```
+
+---
+
+## 🔐 JWT Authentication Flow
 
 ```mermaid
 sequenceDiagram
@@ -116,7 +137,6 @@ sequenceDiagram
     actor User
 
     participant API as Spring Boot API
-
     participant DB as MySQL
 
     User->>API: POST /api/auth/login
@@ -127,11 +147,13 @@ sequenceDiagram
 
     API->>API: Verify password
 
-    API->>API: Generate JWT
+    API->>API: Generate Access Token
 
-    API-->>User: Return JWT Token
+    API->>API: Generate Refresh Token
 
-    User->>API: Request with Authorization Header
+    API-->>User: Return Tokens
+
+    User->>API: Authorization Bearer Token
 
     API->>API: Validate JWT
 
@@ -140,12 +162,38 @@ sequenceDiagram
 
 ---
 
-# 🗄 Entity Relationship Diagram
+## 🔄 Refresh Token Flow
+
+```mermaid
+sequenceDiagram
+
+    actor User
+
+    participant API as Spring Boot API
+    participant DB as MySQL
+
+    User->>API: POST /api/auth/refresh-token
+
+    API->>DB: Validate Refresh Token
+
+    DB-->>API: Refresh Token Valid
+
+    API->>API: Generate New Access Token
+
+    API->>API: Rotate Refresh Token
+
+    API-->>User: Return New Tokens
+```
+
+---
+
+## 🗄 Entity Relationship Diagram
 
 ```mermaid
 erDiagram
 
     USER ||--o{ TASK : owns
+    USER ||--|| REFRESH_TOKEN : has
 
     USER {
         Long id PK
@@ -166,11 +214,18 @@ erDiagram
         LocalDateTime createdAt
         LocalDateTime updatedAt
     }
+
+    REFRESH_TOKEN {
+        Long id PK
+        String token
+        Long user_id FK
+        Instant expiryDate
+    }
 ```
 
 ---
 
-# 📁 Project Structure
+## 📁 Project Structure
 
 ```text
 taskflow/
@@ -178,17 +233,24 @@ taskflow/
 ├── src/
 │   ├── main/
 │   │   ├── java/com/taskflow/
-│   │   │   ├── config/
-│   │   │   ├── controller/
-│   │   │   ├── dto/
-│   │   │   ├── entity/
-│   │   │   ├── exception/
-│   │   │   ├── repository/
-│   │   │   ├── security/
-│   │   │   └── service/
+│   │   │
+│   │   ├── config/
+│   │   ├── controller/
+│   │   ├── dto/
+│   │   │   ├── request/
+│   │   │   └── response/
+│   │   ├── entity/
+│   │   ├── exception/
+│   │   ├── mapper/
+│   │   ├── repository/
+│   │   ├── security/
+│   │   └── service/
+│   │
 │   │   └── resources/
 │   │       └── application.properties
+│   │
 │   └── test/
+│
 ├── Dockerfile
 ├── docker-compose.yml
 ├── pom.xml
@@ -197,17 +259,17 @@ taskflow/
 
 ---
 
-# ⚙️ Getting Started
+## ⚙️ Getting Started
 
-## Prerequisites
+### Prerequisites
 
 - Java 17
 - Maven 3.9+
-- MySQL 8 (or Docker)
+- MySQL 8
 
 ---
 
-## 1. Clone Repository
+### Clone Repository
 
 ```bash
 git clone https://github.com/huenguyenkim/Taskflow.git
@@ -219,7 +281,7 @@ cd Taskflow
 
 ---
 
-## 2. Create Database
+### Create Database
 
 ```sql
 CREATE DATABASE taskflow;
@@ -227,9 +289,7 @@ CREATE DATABASE taskflow;
 
 ---
 
-## 3. Configure Application
-
-`src/main/resources/application.properties`
+### Configure Application
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/taskflow
@@ -242,33 +302,27 @@ jwt.secret=your_secret_key
 jwt.expiration=86400000
 ```
 
-> ⚠️ Never commit real passwords or secrets to GitHub.
-
 ---
 
-## 4. Run Application
-
-Using Maven Wrapper:
+### Run Application
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-or:
+Windows:
 
-```bash
-mvn spring-boot:run
+```powershell
+.\mvnw.cmd spring-boot:run
 ```
 
 ---
 
-## 5. Build JAR
+### Build JAR
 
 ```bash
 ./mvnw clean package
 ```
-
-Run:
 
 ```bash
 java -jar target/taskflow-0.0.1-SNAPSHOT.jar
@@ -276,59 +330,41 @@ java -jar target/taskflow-0.0.1-SNAPSHOT.jar
 
 ---
 
-# 🐳 Docker
+## 🐳 Docker
 
-## Build Docker Image
+### Build Image
 
 ```bash
 docker build -t taskflow .
 ```
 
----
-
-## Run Docker Container
+### Run Container
 
 ```bash
-docker run -p 8080:8080 \
--e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/taskflow \
--e SPRING_DATASOURCE_USERNAME=root \
--e SPRING_DATASOURCE_PASSWORD=your_password \
-taskflow
+docker run -p 8080:8080 taskflow
 ```
 
 ---
 
-# 🐳 Docker Compose
+## 🐳 Docker Compose
 
-## Start Services
+### Start
 
 ```bash
 docker compose up -d
 ```
 
-## View Running Containers
-
-```bash
-docker ps
-```
-
-## Stop Services
+### Stop
 
 ```bash
 docker compose down
 ```
 
-## Remove Volumes
-
-```bash
-docker compose down -v
-```
-
 ---
 
-# 📖 Swagger API Documentation
+## 📖 Swagger API Documentation
 
-After starting the application:
+After starting application:
 
 ```text
 http://localhost:8080/swagger-ui/index.html
@@ -336,98 +372,160 @@ http://localhost:8080/swagger-ui/index.html
 
 ---
 
-# 🔗 Main Endpoints
+## 🔗 Main Endpoints
 
-| Method | Endpoint | Access |
-|----------|-----------|----------|
-| POST | `/api/auth/register` | Public |
-| POST | `/api/auth/login` | Public |
-| GET | `/api/users/profile` | USER / ADMIN |
-| GET | `/api/users` | ADMIN |
-| GET | `/api/users/{id}` | ADMIN |
-| DELETE | `/api/users/{id}` | ADMIN |
-| POST | `/api/tasks` | USER / ADMIN |
-| GET | `/api/tasks` | USER / ADMIN |
-| GET | `/api/tasks/{id}` | USER / ADMIN |
-| PUT | `/api/tasks/{id}` | USER / ADMIN |
-| DELETE | `/api/tasks/{id}` | USER / ADMIN |
+### Authentication
+
+| Method | Endpoint |
+|----------|----------|
+| POST | /api/auth/register |
+| POST | /api/auth/login |
+| POST | /api/auth/refresh-token |
+
+### Users
+
+| Method | Endpoint |
+|----------|----------|
+| GET | /api/users/profile |
+| GET | /api/users |
+| GET | /api/users/{id} |
+| DELETE | /api/users/{id} |
+
+### Tasks
+
+| Method | Endpoint |
+|----------|----------|
+| POST | /api/tasks |
+| GET | /api/tasks |
+| GET | /api/tasks/{id} |
+| PUT | /api/tasks/{id} |
+| DELETE | /api/tasks/{id} |
 
 ---
 
-# 🔍 Task Query Examples
+## 🔍 Task Query Examples
 
-## Pagination
+### Pagination
 
 ```http
 GET /api/tasks?page=0&size=5
 ```
 
----
-
-## Search
+### Search
 
 ```http
 GET /api/tasks?keyword=swagger
 ```
 
----
-
-## Filter
+### Filter
 
 ```http
 GET /api/tasks?status=DONE
 ```
 
----
-
-## Sort
+### Sort
 
 ```http
-GET /api/tasks?sortBy=createdAtttp
+GET /api/tasks?sortBy=createdAt&direction=desc
+```
+
+### Combined Query
+
+```http
 GET /api/tasks?page=0&size=5&status=DONE&keyword=swagger&sortBy=createdAt&direction=desc
 ```
 
 ---
 
-# 🖼 Screenshots
+## 🔐 Login Example
 
-## Swagger UI
+### Request
+
+```json
+{
+  "email": "admin@gmail.com",
+  "password": "123456"
+}
+```
+
+### Response
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
+  "refreshToken": "8f9fc15d-d615-411d-862f-937e876623cf",
+  "tokenType": "Bearer",
+  "id": 1,
+  "username": "admin",
+  "email": "admin@gmail.com",
+  "role": "ADMIN"
+}
+```
+
+---
+
+## 🔄 Refresh Token Example
+
+### Request
+
+```json
+{
+  "refreshToken": "8f9fc15d-d615-411d-862f-937e876623cf"
+}
+```
+
+### Response
+
+```json
+{
+  "accessToken": "new-access-token",
+  "refreshToken": "new-refresh-token",
+  "tokenType": "Bearer"
+}
+```
+
+---
+
+## 🖼 Screenshots
+
+### Swagger UI
 
 ```text
 screenshots/swagger-ui.png
 ```
 
-## JWT Authentication
+### JWT Authentication
 
 ```text
 screenshots/login-success.png
 ```
 
-## Task Management API
+### Task Management API
 
 ```text
 screenshots/task-list.png
 ```
 
-## Pagination, Search, Filter & Sort
+### Pagination Search Filter Sort
 
 ```text
 screenshots/pagination-search-filter-sort.png
 ```
 
-## Docker Containers
+### Refresh Token Authentication
 
 ```text
-screenshots/docker-running.png
+screenshots/refresh-token.png
 ```
 
 ---
 
-# ✅ Completed Features
+## ✅ Completed Features
 
 - JWT Authentication
-- User Registration
-- User Login
+- Access Token
+- Refresh Token
+- Refresh Token Rotation
 - Role-Based Authorization
 - User Management
 - Task CRUD
@@ -437,25 +535,25 @@ screenshots/docker-running.png
 - Sorting
 - Swagger Documentation
 - Docker Support
-- Docker Compose Support
+- Docker Compose
 - MySQL Integration
 - Audit Fields
 
 ---
 
-# 🔮 Future Improvements
+## 🔮 Future Improvements
 
-- [ ] Refresh Token Authentication
+- [ ] React Frontend (Vite + Tailwind CSS)
 - [ ] Email Notifications
 - [ ] File Attachments
 - [ ] Redis Caching
-- [ ] React Frontend (Vite + React Router)
 - [ ] CI/CD Pipeline (GitHub Actions)
 - [ ] Kubernetes Deployment
+- [ ] Task Dashboard & Analytics
 
 ---
 
-# 👩‍💻 Author
+## 👩‍💻 Author
 
 **Nguyen Thi Kim Hue**
 
@@ -467,6 +565,6 @@ Backend Developer (Java / Spring Boot)
 
 ---
 
-# 📄 License
+## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License.v
