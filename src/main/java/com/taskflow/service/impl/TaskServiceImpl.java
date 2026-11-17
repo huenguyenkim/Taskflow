@@ -4,14 +4,18 @@ import com.taskflow.dto.request.TaskRequest;
 import com.taskflow.dto.response.TaskResponse;
 import com.taskflow.entity.Task;
 import com.taskflow.entity.TaskStatus;
+import com.taskflow.entity.User;
 import com.taskflow.exception.ResourceNotFoundException;
 import com.taskflow.repository.TaskRepository;
+import com.taskflow.repository.UserRepository;
 import com.taskflow.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,8 +27,27 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
 
+    private final UserRepository userRepository;
+
     @Override
     public TaskResponse createTask(TaskRequest request) {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        String email =
+                authentication.getName();
+
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "User not found"
+                                )
+                        );
 
         Task task = new Task();
 
@@ -32,7 +55,10 @@ public class TaskServiceImpl implements TaskService {
         task.setDescription(request.getDescription());
         task.setStatus(request.getStatus());
 
-        Task savedTask = taskRepository.save(task);
+        task.setUser(user);
+
+        Task savedTask =
+                taskRepository.save(task);
 
         return mapToResponse(savedTask);
     }
@@ -75,7 +101,6 @@ public class TaskServiceImpl implements TaskService {
             );
         }
 
-        // Search + Status
         if (keyword != null
                 && !keyword.isBlank()
                 && taskStatus != null) {
@@ -89,7 +114,6 @@ public class TaskServiceImpl implements TaskService {
                             );
         }
 
-        // Search
         else if (keyword != null
                 && !keyword.isBlank()) {
 
@@ -101,7 +125,6 @@ public class TaskServiceImpl implements TaskService {
                             );
         }
 
-        // Status
         else if (taskStatus != null) {
 
             tasks =
@@ -112,7 +135,6 @@ public class TaskServiceImpl implements TaskService {
                             );
         }
 
-        // All
         else {
 
             tasks = taskRepository.findAll(
