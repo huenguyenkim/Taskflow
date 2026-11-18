@@ -1,12 +1,13 @@
 package com.taskflow.controller;
 
 import com.taskflow.dto.request.TaskRequest;
+import com.taskflow.dto.response.DashboardResponse;
 import com.taskflow.dto.response.TaskResponse;
 import com.taskflow.service.TaskService;
-import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,25 +18,6 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    /**
-     * Tạo task mới
-     */
-    @PostMapping
-    public ResponseEntity<TaskResponse> createTask(
-            @Valid @RequestBody TaskRequest request
-    ) {
-
-        TaskResponse response =
-                taskService.createTask(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
-    }
-
-    /**
-     * Pagination + Search + Sort + Filter
-     */
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getTasks(
 
@@ -56,9 +38,11 @@ public class TaskController {
 
             @RequestParam(required = false)
             String keyword
+
     ) {
 
-        Page<TaskResponse> tasks =
+        return ResponseEntity.ok(
+
                 taskService.getTasks(
                         page,
                         size,
@@ -66,46 +50,54 @@ public class TaskController {
                         direction,
                         status,
                         keyword
-                );
-
-        return ResponseEntity.ok(tasks);
+                )
+        );
     }
 
-    /**
-     * Lấy chi tiết task theo id
-     */
+    // Dashboard Statistics
+
+    @GetMapping("/stats")
+    public ResponseEntity<DashboardResponse> getDashboard() {
+
+        return ResponseEntity.ok(
+                taskService.getDashboard()
+        );
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTaskById(
             @PathVariable Long id
     ) {
 
-        TaskResponse task =
-                taskService.getTaskById(id);
-
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(
+                taskService.getTaskById(id)
+        );
     }
 
-    /**
-     * Cập nhật task
-     */
+    @PostMapping
+    public ResponseEntity<TaskResponse> createTask(
+            @RequestBody TaskRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                taskService.createTask(request)
+        );
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponse> updateTask(
             @PathVariable Long id,
-            @Valid @RequestBody TaskRequest request
+            @RequestBody TaskRequest request
     ) {
 
-        TaskResponse response =
+        return ResponseEntity.ok(
                 taskService.updateTask(
                         id,
                         request
-                );
-
-        return ResponseEntity.ok(response);
+                )
+        );
     }
 
-    /**
-     * Xóa task
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(
             @PathVariable Long id

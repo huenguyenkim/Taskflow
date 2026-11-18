@@ -1,6 +1,7 @@
 package com.taskflow.service.impl;
 
 import com.taskflow.dto.request.TaskRequest;
+import com.taskflow.dto.response.DashboardResponse;
 import com.taskflow.dto.response.TaskResponse;
 import com.taskflow.entity.Task;
 import com.taskflow.entity.TaskStatus;
@@ -9,7 +10,9 @@ import com.taskflow.exception.ResourceNotFoundException;
 import com.taskflow.repository.TaskRepository;
 import com.taskflow.repository.UserRepository;
 import com.taskflow.service.TaskService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -96,9 +99,11 @@ public class TaskServiceImpl implements TaskService {
         TaskStatus taskStatus = null;
 
         if (status != null && !status.isBlank()) {
-            taskStatus = TaskStatus.valueOf(
-                    status.toUpperCase()
-            );
+
+            taskStatus =
+                    TaskStatus.valueOf(
+                            status.toUpperCase()
+                    );
         }
 
         if (keyword != null
@@ -137,9 +142,10 @@ public class TaskServiceImpl implements TaskService {
 
         else {
 
-            tasks = taskRepository.findAll(
-                    pageable
-            );
+            tasks =
+                    taskRepository.findAll(
+                            pageable
+                    );
         }
 
         return tasks.map(this::mapToResponse);
@@ -149,12 +155,13 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(readOnly = true)
     public TaskResponse getTaskById(Long id) {
 
-        Task task = taskRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Task not found with id: " + id
-                        )
-                );
+        Task task =
+                taskRepository.findById(id)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Task not found with id: " + id
+                                )
+                        );
 
         return mapToResponse(task);
     }
@@ -165,12 +172,13 @@ public class TaskServiceImpl implements TaskService {
             TaskRequest request
     ) {
 
-        Task task = taskRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Task not found with id: " + id
-                        )
-                );
+        Task task =
+                taskRepository.findById(id)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Task not found with id: " + id
+                                )
+                        );
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
@@ -185,14 +193,47 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTask(Long id) {
 
-        Task task = taskRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException(
-                                "Task not found with id: " + id
-                        )
-                );
+        Task task =
+                taskRepository.findById(id)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(
+                                        "Task not found with id: " + id
+                                )
+                        );
 
         taskRepository.delete(task);
+    }
+
+    // Dashboard Statistics
+
+    @Override
+    @Transactional(readOnly = true)
+    public DashboardResponse getDashboard() {
+
+        long totalTasks =
+                taskRepository.count();
+
+        long todoTasks =
+                taskRepository.countByStatus(
+                        TaskStatus.TODO
+                );
+
+        long inProgressTasks =
+                taskRepository.countByStatus(
+                        TaskStatus.IN_PROGRESS
+                );
+
+        long doneTasks =
+                taskRepository.countByStatus(
+                        TaskStatus.DONE
+                );
+
+        return new DashboardResponse(
+                totalTasks,
+                todoTasks,
+                inProgressTasks,
+                doneTasks
+        );
     }
 
     private TaskResponse mapToResponse(Task task) {
