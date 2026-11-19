@@ -2,7 +2,7 @@
 
 > A secure Task Management REST API built with Spring Boot 3, Spring Security JWT, and MySQL.
 >
-> Supports JWT Authentication, Refresh Token Authentication, Ownership-Based Access Control, Dashboard Analytics, Validation, Exception Handling, and Comprehensive Testing.
+> Supports JWT Authentication, Refresh Token Authentication, Ownership-Based Access Control, Dashboard Analytics, Validation, Exception Handling, Docker Support, and Comprehensive Testing.
 
 ---
 
@@ -185,44 +185,6 @@ BUILD SUCCESS
 
 ---
 
-# 🚀 Advanced Features
-
-✅ JWT Authentication
-
-✅ Refresh Token Authentication
-
-✅ Refresh Token Rotation
-
-✅ Role-Based Authorization
-
-✅ Ownership-Based Access Control
-
-✅ Dashboard Statistics
-
-✅ DTO Validation
-
-✅ Global Exception Handling
-
-✅ Pagination
-
-✅ Search By Title
-
-✅ Filter By Status
-
-✅ Sorting
-
-✅ Swagger/OpenAPI Documentation
-
-✅ Unit Testing
-
-✅ Integration Testing
-
-✅ Repository Testing
-
-✅ Audit Fields (`createdAt`, `updatedAt`)
-
----
-
 # 🛠 Tech Stack
 
 | Layer | Technologies |
@@ -237,6 +199,7 @@ BUILD SUCCESS
 | Documentation | Swagger / OpenAPI |
 | Testing | JUnit 5, Mockito, MockMvc, DataJpaTest |
 | Build Tool | Maven |
+| Containerization | Docker, Docker Compose |
 | Utility | Lombok |
 
 ---
@@ -262,26 +225,27 @@ MySQL
 # 📁 Project Structure
 
 ```text
-src
-├── main
-│   ├── java/com/taskflow
-│   │
-│   ├── config
-│   ├── controller
-│   ├── dto
-│   │   ├── request
-│   │   └── response
-│   │
-│   ├── entity
-│   ├── exception
-│   ├── repository
-│   ├── security
-│   └── service
-│
-└── test
-    ├── controller
-    ├── repository
-    └── service
+.
+├── src
+│   ├── main
+│   │   └── java/com/taskflow
+│   │       ├── config
+│   │       ├── controller
+│   │       ├── dto
+│   │       │   ├── request
+│   │       │   └── response
+│   │       ├── entity
+│   │       ├── exception
+│   │       ├── repository
+│   │       ├── security
+│   │       └── service
+│   └── test
+│       ├── controller
+│       ├── repository
+│       └── service
+├── Dockerfile
+├── docker-compose.yml
+└── pom.xml
 ```
 
 ---
@@ -323,6 +287,7 @@ REFRESH_TOKEN
 - Java 17
 - Maven 3.9+
 - MySQL 8
+- Docker & Docker Compose (optional, for the Docker setup)
 
 ---
 
@@ -360,6 +325,9 @@ jwt.expiration=86400000
 jwt.refresh-expiration=604800000
 ```
 
+> Do not commit real passwords or secrets. In production, provide them through environment variables
+> (for example `JWT_SECRET`, `SPRING_DATASOURCE_PASSWORD`).
+
 ---
 
 ## Run Application
@@ -395,6 +363,64 @@ jwt.refresh-expiration=604800000
 ```bash
 java -jar target/taskflow-0.0.1-SNAPSHOT.jar
 ```
+
+---
+
+# 🐳 Run with Docker
+
+Run the API and MySQL together with a single command. No local Java or MySQL installation is required.
+
+## Prerequisites
+
+- Docker
+- Docker Compose v2 (included with Docker Desktop)
+
+## Start
+
+```bash
+git clone https://github.com/huenguyenkim/Taskflow.git
+cd Taskflow
+docker compose up --build
+```
+
+The first run builds the application image (multi-stage `Dockerfile`: Maven build, then a lightweight JRE image) and starts two containers:
+
+| Service | Container | Port |
+|---|---|---|
+| Spring Boot API | `taskflow-app` | `8080` |
+| MySQL 8 | `taskflow-mysql` | `3306` |
+
+The API waits for MySQL to be healthy before starting.
+
+## Access
+
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+
+## Environment Variables (optional)
+
+Defaults are provided for local development. Override them by exporting variables or creating a `.env` file next to `docker-compose.yml`:
+
+```text
+DB_PASSWORD=your_db_password
+JWT_SECRET=your_long_random_secret
+```
+
+## Useful Commands
+
+```bash
+docker compose up -d --build   # run in background
+docker compose ps              # list running containers
+docker compose logs -f taskflow   # follow application logs
+docker compose down            # stop containers
+docker compose down -v         # stop containers and delete database data
+```
+
+## Troubleshooting
+
+- **Port 3306 already in use:** stop your local MySQL, or change the left side of `"3306:3306"` in `docker-compose.yml`.
+- **API cannot connect to the database:** inside Docker the database host is `mysql` (the service name), not `localhost`.
+- **Changed the code but nothing updated:** rebuild with `docker compose up --build`.
 
 ---
 
@@ -476,20 +502,18 @@ GET /api/tasks?page=0&size=5&keyword=spring&status=DONE&sortBy=createdAt&directi
 # ✅ Completed Features
 
 - JWT Authentication
-- Refresh Token Authentication
-- Refresh Token Rotation
+- Refresh Token Authentication & Rotation
 - Role-Based Authorization
 - Ownership-Based Access Control
 - Dashboard Statistics
 - Task CRUD Operations
-- Search & Filtering
-- Pagination & Sorting
+- Search, Filtering, Pagination & Sorting
 - DTO Validation
 - Global Exception Handling
-- Swagger Documentation
-- Unit Testing
-- Integration Testing
-- Repository Testing
+- Swagger / OpenAPI Documentation
+- Unit, Integration & Repository Testing
+- Audit Fields (`createdAt`, `updatedAt`)
+- Docker & Docker Compose Support
 
 ---
 
