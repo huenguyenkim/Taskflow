@@ -1,5 +1,3 @@
-Nếu README này dành riêng cho Backend Repository của TaskFlow thì nên viết theo hướng backend-focused, phản ánh đúng những gì bạn đã hoàn thành.
-
 🚀 TaskFlow Backend
 
 A secure Task Management REST API built with Java 17, Spring Boot 3, Spring Security JWT, and MySQL.
