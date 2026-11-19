@@ -2,7 +2,19 @@
 
 A secure Task Management REST API built with Java 17, Spring Boot 3, Spring Security JWT, and MySQL.
 
-The application supports JWT Authentication, Refresh Token Authentication, Ownership-Based Access Control, Dashboard Analytics, Validation, Exception Handling, and comprehensive testing.
+Supports JWT Authentication, Refresh Token Authentication, Ownership-Based Access Control, Dashboard Analytics, Validation, Exception Handling, and Comprehensive Testing.
+
+🌐 Live Demo
+Frontend
+
+TaskFlow Frontend
+
+Backend API
+
+Railway Deployment
+
+Swagger Documentation
+http://localhost:8080/swagger-ui/index.html
 
 ✨ Features
 🔐 Authentication
@@ -24,26 +36,100 @@ Get Task By ID
 Update Task
 Delete Task
 Search Tasks
-Filter Tasks by Status
+Filter Tasks By Status
 Pagination
 Sorting
 Dashboard Statistics
 🛡 Security
 Role-Based Authorization
 
-Supported roles:
+Supported Roles:
 
 USER
 ADMIN
 Ownership-Based Access Control
 
-Users can only:
+Users can:
 
 View their own tasks
 Update their own tasks
 Delete their own tasks
 
-Even when a valid task ID is known, a user cannot access another user's data.
+Users cannot access another user's task even when the task ID is known.
+
+✅ Validation & Exception Handling
+DTO Validation
+
+Implemented using Jakarta Bean Validation:
+
+@NotBlank
+@NotNull
+@Size
+@Email
+Global Exception Handling
+
+Implemented using:
+
+@RestControllerAdvice
+
+
+Standardized API responses for:
+
+Validation Errors
+Resource Not Found
+Bad Requests
+Internal Server Errors
+📊 Dashboard
+
+Provides statistics for the currently authenticated user:
+
+Total Tasks
+TODO Tasks
+In Progress Tasks
+Completed Tasks
+
+Dashboard data is isolated through Ownership-Based Access Control.
+
+🧪 Testing
+Unit Testing
+
+Tools:
+
+JUnit 5
+Mockito
+Tested Components
+TaskService
+Dashboard Logic
+Ownership Security Logic
+Integration Testing
+
+Tools:
+
+MockMvc
+Spring Security Test
+Tested APIs
+Register API
+Login API
+Refresh Token API
+Task CRUD APIs
+Dashboard APIs
+Repository Testing
+
+Tools:
+
+DataJpaTest
+H2 In-Memory Database
+Tested Queries
+findByUser()
+findByIdAndUser()
+countByUser()
+countByUserAndStatus()
+✅ Test Result
+Tests run: 30
+Failures: 0
+Errors: 0
+
+BUILD SUCCESS
 
 🚀 Advanced Features
 
@@ -65,9 +151,9 @@ Even when a valid task ID is known, a user cannot access another user's data.
 
 ✅ Pagination
 
-✅ Search by Title
+✅ Search By Title
 
-✅ Filter by Status
+✅ Filter By Status
 
 ✅ Sorting
 
@@ -81,37 +167,6 @@ Even when a valid task ID is known, a user cannot access another user's data.
 
 ✅ Audit Fields (createdAt, updatedAt)
 
-🧪 Testing
-Unit Testing
-JUnit 5
-Mockito
-Tested Components
-TaskService
-Dashboard Logic
-Ownership Security Logic
-Integration Testing
-MockMvc
-Spring Security Test
-Tested APIs
-Register API
-Login API
-Refresh Token API
-Task CRUD API
-Dashboard API
-Repository Testing
-DataJpaTest
-H2 In-Memory Database
-Tested Queries
-findByUser()
-findByIdAndUser()
-countByUser()
-countByUserAndStatus()
-Test Result
-Tests run: 30
-Failures: 0
-Errors: 0
-BUILD SUCCESS
-
 🛠 Tech Stack
 Layer	TechnologiesLanguage	Java 17
 Framework	Spring Boot 3.5.6
@@ -120,7 +175,7 @@ Authentication	JWT + Refresh Token
 Database	MySQL 8
 ORM	Spring Data JPA, Hibernate
 Validation	Jakarta Bean Validation
-Documentation	Swagger / OpenAPI 3
+Documentation	Swagger / OpenAPI
 Testing	JUnit 5, Mockito, MockMvc, DataJpaTest
 Build Tool	Maven
 Utility	Lombok
@@ -141,18 +196,18 @@ MySQL
 src
 ├── main
 │   ├── java/com/taskflow
-│   │   ├── config
-│   │   ├── controller
-│   │   ├── dto
-│   │   │   ├── request
-│   │   │   └── response
-│   │   ├── entity
-│   │   ├── exception
-│   │   ├── repository
-│   │   ├── security
-│   │   └── service
 │   │
-│   └── resources
+│   ├── config
+│   ├── controller
+│   ├── dto
+│   │   ├── request
+│   │   └── response
+│   │
+│   ├── entity
+│   ├── exception
+│   ├── repository
+│   ├── security
+│   └── service
 │
 └── test
     ├── controller
@@ -209,14 +264,10 @@ jwt.expiration=86400000
 jwt.refresh-expiration=604800000
 
 Run Application
-
 Windows
-
 .\mvnw.cmd spring-boot:run
 
-
-Linux / Mac
-
+Linux / macOS
 ./mvnw spring-boot:run
 
 Run Tests
@@ -264,6 +315,9 @@ GET /api/tasks?page=0&size=5
 Sort
 GET /api/tasks?sortBy=createdAt&direction=desc
 
+Combined Query
+GET /api/tasks?page=0&size=5&keyword=spring&status=DONE&sortBy=createdAt&direction=desc
+
 ✅ Completed Features
 JWT Authentication
 Refresh Token Authentication
@@ -292,10 +346,10 @@ WebSocket Notifications
 Nguyen Thi Kim Hue
 
 GitHub: https://github.com/huenguyenkim
-Repository: https://github.com/huenguyenkim/Taskflow
+Backend Repository: https://github.com/huenguyenkim/Taskflow
+Frontend Repository: https://github.com/huenguyenkim/taskflow-frontend
+Frontend Demo: https://taskflow-frontend-eight-chi.vercel.app/
 Email: nguyenhue2612200398@gmail.com
 📄 License
 
 MIT License
-
-Đây là phiên bản README backend phù hợp hơn với dự án hiện tại vì phản ánh đúng các phần bạn đã hoàn thành: Ownership Security, Dashboard, Validation, Exception Handling và 30 test case PASS.
